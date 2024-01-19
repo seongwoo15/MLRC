@@ -35,4 +35,4 @@ We welcome contributions from the community. If you are interested in contributi
 
 ## Contact
 
-For any inquiries or discussions related to this replication project, feel free to contact us at [your contact email].
+For any inquiries or discussions related to this replication project, feel free to contact us at kimseongu15@gmail.com.
