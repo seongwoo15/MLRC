@@ -71,7 +71,7 @@ early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=5)
 
 training_args = TrainingArguments(
     output_dir="train_" + dataset_name, 
-    evaluation_strategy="epoch",
+    evaluation_strategy="steps",
     save_strategy= 'epoch',
     per_device_train_batch_size=32, 
     per_device_eval_batch_size=32,
