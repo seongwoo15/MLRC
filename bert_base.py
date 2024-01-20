@@ -31,12 +31,12 @@ def compute_metrics(eval_pred):
     return metric.compute(predictions=predictions, references=labels)
 
 dataset_list = ['wnli', 'sst2', 'rte', 'qnli', 'mrpc', 'cola', 'mnli', 'qqp']
-dataset_name = 'sst2'
+dataset_name = 'wnli'
 
 dataset = load_dataset("glue", dataset_name)
 #print(dataset)
 print(dataset['train'][0])
-
+print(len(dataset['train']))
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 if(dataset_name in ['cola','sst2']):
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
@@ -68,11 +68,12 @@ metric = evaluate.load("accuracy")
 # Create an instance of your custom callback
 early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=5)
 
-
+#step eval수정할것
+exit()
 training_args = TrainingArguments(
     output_dir="train_" + dataset_name, 
     evaluation_strategy="steps",
-    save_strategy= 'epoch',
+    save_strategy= 'steps',
     per_device_train_batch_size=32, 
     per_device_eval_batch_size=32,
     learning_rate=0.00005,
@@ -94,3 +95,4 @@ trainer = Trainer(
 )
 
 trainer.train()
+
