@@ -31,7 +31,7 @@ def compute_metrics(eval_pred):
     return metric.compute(predictions=predictions, references=labels)
 
 dataset_list = ['wnli', 'sst2', 'rte', 'qnli', 'mrpc', 'cola', 'mnli', 'qqp']
-dataset_name = 'sst2'
+dataset_name = 'qnli'
 
 dataset = load_dataset("glue", dataset_name)
 #print(dataset)
@@ -71,8 +71,10 @@ early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=5)
 
 training_args = TrainingArguments(
     output_dir="train_" + dataset_name, 
-    evaluation_strategy="epoch",
-    save_strategy= 'epoch',
+    evaluation_strategy="steps",
+    save_strategy= 'steps',
+    eval_steps=max(1,len(dataset['train'])//800),
+    save_steps=max(1,len(dataset['train'])//800),
     per_device_train_batch_size=32, 
     per_device_eval_batch_size=32,
     learning_rate=0.00005,
