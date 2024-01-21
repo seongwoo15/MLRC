@@ -1,7 +1,6 @@
 output
 plots
 results
-models
 *.jsonl
 
 # Byte-compiled / optimized / DLL files
