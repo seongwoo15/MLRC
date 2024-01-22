@@ -35,14 +35,7 @@ def compute_metrics_acc_f1(eval_pred):
     predictions = np.argmax(logits, axis=-1)
     accuracy = accuracy_metric.compute(predictions=predictions, references=labels)["accuracy"]
     f1 = f1_metric.compute(predictions=predictions, references=labels)["f1"]
-    return accuracy / f1 if f1 > 0 else 0
-
-def compute_metrics_f1_acc(eval_pred):
-    logits, labels = eval_pred
-    predictions = np.argmax(logits, axis=-1)
-    accuracy = accuracy_metric.compute(predictions=predictions, references=labels)["accuracy"]
-    f1 = f1_metric.compute(predictions=predictions, references=labels)["f1"]
-    return f1 / accuracy if accuracy > 0 else 0
+    return {"accuracy": accuracy, "f1": f1}
 
 def compute_metrics_mcc(eval_pred):
     logits, labels = eval_pred
@@ -51,7 +44,7 @@ def compute_metrics_mcc(eval_pred):
 
 
 dataset_list = ['wnli', 'sst2', 'rte', 'qnli', 'mrpc', 'cola', 'mnli', 'qqp']
-dataset_name = 'rte'
+dataset_name = 'mrpc'
 
 dataset = load_dataset("glue", dataset_name)
 #print(dataset)
@@ -110,10 +103,8 @@ training_args = TrainingArguments(
 print(training_args)
 if(dataset_name in ['wnli', 'sst2', 'rte', 'qnli', 'mnli']):
     compute_metrics = compute_metrics_acc
-elif(dataset_name =='qqp'):
+elif(dataset_name =='qqp', 'mrpc'):
     compute_metrics = compute_metrics_acc_f1
-elif(dataset_name =='mrpc'):
-    compute_metrics = compute_metrics_f1_acc
 elif(dataset_name =='cola'):
     compute_metrics = compute_metrics_mcc
     
