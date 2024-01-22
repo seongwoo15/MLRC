@@ -103,7 +103,7 @@ training_args = TrainingArguments(
 print(training_args)
 if(dataset_name in ['wnli', 'sst2', 'rte', 'qnli', 'mnli']):
     compute_metrics = compute_metrics_acc
-elif(dataset_name =='qqp', 'mrpc'):
+elif(dataset_name in ['qqp', 'mrpc']):
     compute_metrics = compute_metrics_acc_f1
 elif(dataset_name =='cola'):
     compute_metrics = compute_metrics_mcc
