@@ -41,11 +41,12 @@ def compute_metrics_acc_f1(eval_pred):
 def compute_metrics_mcc(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
-    return mcc_metric.compute(predictions=predictions, references=labels)
+    mtt = mcc_metric.compute(predictions=predictions, references=labels)
+    return mtt
 
 
 dataset_list = ['wnli', 'sst2', 'rte', 'qnli', 'mrpc', 'cola', 'mnli', 'qqp']
-dataset_name = 'mrpc'
+dataset_name = 'cola'
 
 dataset = load_dataset("glue", dataset_name)
 #print(dataset)
@@ -84,7 +85,7 @@ mcc_metric = load_metric("matthews_correlation")
 # Create an instance of your custom callback
 early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=5)
 
-
+metric_name = 'accuracy' if dataset_name != 'cola' else 'matthews_correlation'
 training_args = TrainingArguments(
     output_dir="train_" + dataset_name, 
     evaluation_strategy="steps",
@@ -96,12 +97,12 @@ training_args = TrainingArguments(
     learning_rate=0.00005,
     num_train_epochs=4.0,
     load_best_model_at_end=True,
-    metric_for_best_model="accuracy",
+    metric_for_best_model='matthews_correlation',
     greater_is_better=True,
     fp16=True,
 )
 
-print(training_args)
+#print(training_args)
 if(dataset_name in ['wnli', 'sst2', 'rte', 'qnli', 'mnli']):
     compute_metrics = compute_metrics_acc
 elif(dataset_name in ['qqp','mrpc']):
