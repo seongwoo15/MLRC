@@ -97,7 +97,7 @@ training_args = TrainingArguments(
     learning_rate=0.00005,
     num_train_epochs=4.0,
     load_best_model_at_end=True,
-    metric_for_best_model='matthews_correlation',
+    metric_for_best_model=metric_name,
     greater_is_better=True,
     fp16=True,
 )
