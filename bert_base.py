@@ -1,4 +1,4 @@
-from datasets import load_dataset
+from datasets import load_dataset, load_metric
 from transformers import AutoTokenizer, TrainingArguments, Trainer
 from transformers import AutoModelForSequenceClassification
 import numpy as np
@@ -25,13 +25,26 @@ def tokenize_function_5(examples):
     return tokenizer(examples["question1"], examples["question2"], padding="max_length", truncation=True, max_length=512)
 
 
-def compute_metrics(eval_pred):
+def compute_metrics_acc(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
-    return metric.compute(predictions=predictions, references=labels)
+    return accuracy_metric.compute(predictions=predictions, references=labels)
+
+def compute_metrics_acc_f1(eval_pred):
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+    accuracy = accuracy_metric.compute(predictions=predictions, references=labels)["accuracy"]
+    f1 = f1_metric.compute(predictions=predictions, references=labels)["f1"]
+    return {"accuracy": accuracy, "f1": f1}
+
+def compute_metrics_mcc(eval_pred):
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+    return mcc_metric.compute(predictions=predictions, references=labels)
+
 
 dataset_list = ['wnli', 'sst2', 'rte', 'qnli', 'mrpc', 'cola', 'mnli', 'qqp']
-dataset_name = 'qnli'
+dataset_name = 'mrpc'
 
 dataset = load_dataset("glue", dataset_name)
 #print(dataset)
@@ -64,7 +77,9 @@ config = BertConfig.from_pretrained("bert-base-uncased", hidden_dropout_prob=0.1
 model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", config=config)
 
 
-metric = evaluate.load("accuracy")
+accuracy_metric = evaluate.load("accuracy")
+f1_metric = evaluate.load("f1")
+mcc_metric = load_metric("matthews_correlation")
 # Create an instance of your custom callback
 early_stopping_callback = EarlyStoppingCallback(early_stopping_patience=5)
 
@@ -86,13 +101,20 @@ training_args = TrainingArguments(
 )
 
 print(training_args)
-
+if(dataset_name in ['wnli', 'sst2', 'rte', 'qnli', 'mnli']):
+    compute_metrics = compute_metrics_acc
+elif(dataset_name in ['qqp', 'mrpc']):
+    compute_metrics = compute_metrics_acc_f1
+elif(dataset_name =='cola'):
+    compute_metrics = compute_metrics_mcc
+    
 trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=shuffle_train_dataset,
     eval_dataset=shuffle_eval_dataset,
     compute_metrics=compute_metrics,
+    callbacks=[early_stopping_callback],
 )
 
 trainer.train()
