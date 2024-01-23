@@ -94,7 +94,8 @@ def finetune(args):
 
             torch.nn.utils.clip_grad_norm_(params, 1.0)
 
-            optimizer.step()
+            if (i + 1) % gradient_accumulation_steps:
+                optimizer.step()
 
             batch_time = time.time() - start_time
             if i % print_every == 0:
