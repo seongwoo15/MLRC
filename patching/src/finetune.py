@@ -77,6 +77,10 @@ def finetune(args):
             start_time = time.time()
             step = i + epoch * num_batches
 
+            if (i + 1) % gradient_accumulation_steps:
+                scheduler(step)
+                optimizer.zero_grad()
+
             batch = maybe_dictionarize(batch)
             inputs = batch['images'].cuda()
             labels = batch['labels'].cuda()
@@ -90,10 +94,7 @@ def finetune(args):
 
             torch.nn.utils.clip_grad_norm_(params, 1.0)
 
-            if (i + 1) % gradient_accumulation_steps:
-                scheduler(step)
-                optimizer.zero_grad()
-                optimizer.step()
+            optimizer.step()
 
             batch_time = time.time() - start_time
             if i % print_every == 0:

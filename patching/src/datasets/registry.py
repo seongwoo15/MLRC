@@ -4,6 +4,8 @@ import random
 import torch
 import copy
 
+from torch.utils.data import random_split
+
 from src.datasets.cars import Cars
 from src.datasets.cifar10 import CIFAR10
 from src.datasets.cifar100 import CIFAR100

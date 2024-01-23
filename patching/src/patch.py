@@ -14,11 +14,13 @@ python src/patch.py   \
     --alpha 0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
 
 """
+import warnings
+warnings.filterwarnings('ignore')
 import os, sys
-print(f"Current working directory: {os.path.dirname(os.getcwd())}")
+# print(f"Current working directory: {os.path.dirname(os.getcwd())}")
 sys.path.insert(0, os.path.dirname(os.getcwd()))
 sys.path.insert(0, os.getcwd())
-
+# os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 from src.eval import evaluate
 from src.finetune import finetune

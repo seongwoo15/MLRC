@@ -9,6 +9,8 @@ class SUN397:
                  batch_size=32,
                  num_workers=16):
         # Data loading code
+
+
         traindir = os.path.join(location, 'sun397', 'train')
         valdir = os.path.join(location, 'sun397', 'val')
 
