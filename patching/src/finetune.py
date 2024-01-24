@@ -102,7 +102,7 @@ def finetune(args):
             batch_time = time.time() - start_time
             if i % print_every == 0:
                 percent_complete = 100 * i / len(data_loader)
-                logging.info(f"Train Epoch: {epoch} [{percent_complete:.0f}% {i}/{len(dataset.train_loader)}]\t")
+                logging.info(f"Train Steps: {step} [{percent_complete:.0f}% {i}/{len(dataset.train_loader)}]\t")
                 logging.info(f"Loss: {loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}")
             step = step + 1
 
