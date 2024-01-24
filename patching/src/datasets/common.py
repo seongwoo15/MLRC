@@ -6,7 +6,7 @@ import collections
 import random
 
 import numpy as np
-
+import logging
 from tqdm import tqdm
 
 import torchvision.datasets as datasets
@@ -28,7 +28,7 @@ class ImageFolderWithPaths(datasets.ImageFolder):
         super().__init__(path, transform)
         self.flip_label_prob = flip_label_prob
         if self.flip_label_prob > 0:
-            print(f'Flipping labels with probability {self.flip_label_prob}')
+            logging.info(f'Flipping labels with probability {self.flip_label_prob}')
             num_classes = len(self.classes)
             for i in range(len(self.samples)):
                 if random.random() < self.flip_label_prob:
@@ -98,20 +98,20 @@ def get_features(is_train, image_encoder, dataset, device):
         cache_dir = f'{image_encoder.cache_dir}/{dname}/{split}'
         cached_files = glob.glob(f'{cache_dir}/*')
     if image_encoder.cache_dir is not None and len(cached_files) > 0:
-        print(f'Getting features from {cache_dir}')
+        logging.info(f'Getting features from {cache_dir}')
         data = {}
         for cached_file in cached_files:
             name = os.path.splitext(os.path.basename(cached_file))[0]
             data[name] = torch.load(cached_file)
     else:
-        print(f'Did not find cached features at {cache_dir}. Building from scratch.')
+        logging.info(f'Did not find cached features at {cache_dir}. Building from scratch.')
         loader = dataset.train_loader if is_train else dataset.test_loader
         data = get_features_helper(image_encoder, loader, device)
         if image_encoder.cache_dir is None:
-            print('Not caching because no cache directory was passed.')
+            logging.info('Not caching because no cache directory was passed.')
         else:
             os.makedirs(cache_dir, exist_ok=True)
-            print(f'Caching data at {cache_dir}')
+            logging.info(f'Caching data at {cache_dir}')
             for name, val in data.items():
                 torch.save(val, f'{cache_dir}/{name}.pt')
     return data

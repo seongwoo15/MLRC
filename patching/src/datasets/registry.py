@@ -5,7 +5,7 @@ import torch
 import copy
 
 from torch.utils.data import random_split
-
+import logging
 from src.datasets.cars import Cars
 from src.datasets.cifar10 import CIFAR10
 from src.datasets.cifar100 import CIFAR100
@@ -55,9 +55,9 @@ def split_train_into_train_val(dataset, new_dataset_class_name, batch_size, num_
         generator=torch.Generator().manual_seed(seed)
     )
     if new_dataset_class_name == 'MNISTVal':
-        print('asserting')
+        logging.info('asserting')
         assert trainset.indices[0] == 36044
-        print('looks good.')
+        logging.info('looks good.')
 
 
     new_dataset = None

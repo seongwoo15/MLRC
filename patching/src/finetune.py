@@ -10,7 +10,7 @@ from eval import evaluate
 from src.modeling import ImageEncoder, ImageClassifier
 from src.utils import cosine_lr, LabelSmoothing
 from src.heads import get_classification_head
-
+import logging
 import src.datasets as datasets
 
 
@@ -19,14 +19,14 @@ def finetune(args):
     zs_path = os.path.join(args.save, args.train_dataset, 'checkpoint_0.pt')
     ft_path = os.path.join(args.save, args.train_dataset, f'checkpoint_{args.epochs}.pt')
     if os.path.exists(zs_path) and os.path.exists(ft_path):
-        print(f'Skipping fine-tuning because {ft_path} exists.')
+        logging.info(f'Skipping fine-tuning because {ft_path} exists.')
         return zs_path, ft_path
 
     assert args.train_dataset is not None, "Please provide a training dataset."
     if args.load is not None and args.load.endswith('pt'):
         image_encoder = ImageEncoder.load(args.load)
     else:
-        print('Building image encoder.')
+        logging.info('Building image encoder.')
         image_encoder = ImageEncoder(args, keep_lang=False)
 
     classification_head = get_classification_head(args, args.train_dataset)
@@ -44,10 +44,11 @@ def finetune(args):
         location=args.data_location,
         batch_size=args.batch_size
     )
-    num_batches = len(dataset.train_loader)
-    args.epochs = 4000 // num_batches
+    gradient_accumulation_steps = 2
+    total_steps = 2000 * gradient_accumulation_steps
+
     devices = list(range(torch.cuda.device_count()))
-    print('Using devices', devices)
+    logging.info(f'Using devices {devices}')
     model = torch.nn.DataParallel(model, device_ids=devices)
 
     if args.ls > 0:
@@ -58,29 +59,30 @@ def finetune(args):
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.AdamW(params, lr=args.lr, weight_decay=args.wd)
 
-    scheduler = cosine_lr(optimizer, args.lr, args.warmup_length, 4000)
+    scheduler = cosine_lr(optimizer, args.lr, args.warmup_length, total_steps)
 
     # Saving model
     if args.save is not None:
         os.makedirs(args.save, exist_ok=True)
         model_path = os.path.join(args.save, args.train_dataset, f'checkpoint_0.pt')
         model.module.image_encoder.save(model_path)
-    gradient_accumulation_steps = 2
-    for epoch in range(args.epochs):
+
+    step = 0
+
+    while step < total_steps:
         model.train()
         model = model.cuda()
-
         data_loader = get_dataloader(
             dataset, is_train=True, args=args, image_encoder=None)
 
         for i, batch in enumerate(data_loader):
             start_time = time.time()
-            step = i + epoch * num_batches
 
-            if (i + 1) % gradient_accumulation_steps:
+            if (step >= total_steps):
+                break
+            if (i + 1) % gradient_accumulation_steps == 0:
                 scheduler(step)
                 optimizer.zero_grad()
-
             batch = maybe_dictionarize(batch)
             inputs = batch['images'].cuda()
             labels = batch['labels'].cuda()
@@ -94,37 +96,33 @@ def finetune(args):
 
             torch.nn.utils.clip_grad_norm_(params, 1.0)
 
-            if (i + 1) % gradient_accumulation_steps:
+            if (i + 1) % gradient_accumulation_steps == 0:
                 optimizer.step()
 
             batch_time = time.time() - start_time
             if i % print_every == 0:
                 percent_complete = 100 * i / len(data_loader)
-                print(
-                    f"Train Epoch: {epoch} [{percent_complete:.0f}% {i}/{len(dataset.train_loader)}]\t"
-                    f"Loss: {loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}", flush=True
-                )
+                logging.info(f"Train Epoch: {epoch} [{percent_complete:.0f}% {i}/{len(dataset.train_loader)}]\t")
+                logging.info(f"Loss: {loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}")
+            step = step + 1
 
         image_encoder = model.module.image_encoder
 
         # Saving model
         if args.save is not None:
             os.makedirs(args.save, exist_ok=True)
-            model_path = os.path.join(args.save, args.train_dataset, f'checkpoint_{epoch + 1}.pt')
+            model_path = os.path.join(args.save, args.train_dataset, f'checkpoint_{step}.pt')
             image_encoder.save(model_path)
-            optim_path = os.path.join(args.save, args.train_dataset, f'optim_{epoch + 1}.pt')
+            optim_path = os.path.join(args.save, args.train_dataset, f'optim_{step}.pt')
             torch.save(optimizer.state_dict(), optim_path)
 
         # Evaluate
-        args.current_epoch = epoch
-        if args.eval_every_epoch:
-            evaluate(image_encoder, args)
+        evaluate(image_encoder, args)
 
     if args.save is not None:
         zs_path = os.path.join(args.save, args.train_dataset, 'checkpoint_0.pt')
         ft_path = os.path.join(args.save, args.train_dataset, f'checkpoint_{args.epochs}.pt')
         return zs_path, ft_path
-
 
 if __name__ == '__main__':
     args = parse_arguments()

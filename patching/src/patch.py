@@ -17,7 +17,7 @@ python src/patch.py   \
 import warnings
 warnings.filterwarnings('ignore')
 import os, sys
-# print(f"Current working directory: {os.path.dirname(os.getcwd())}")
+# logging.info(f"Current working directory: {os.path.dirname(os.getcwd())}")
 sys.path.insert(0, os.path.dirname(os.getcwd()))
 sys.path.insert(0, os.getcwd())
 # os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -27,7 +27,20 @@ from src.finetune import finetune
 from src.modeling import ImageEncoder
 from src.args import parse_arguments
 
+
+import logging
+
+from datetime import datetime
+from distutils.dir_util import mkpath
+
 def patch(args):
+    filename = args.results_db.replace('.jsonl', '_console.txt')  # Setting the filename from current date and time
+    mkpath(os.path.dirname(filename))
+    logging.basicConfig(filename=filename, filemode='a',
+                        format="%(asctime)s, %(msecs)d %(name)s %(levelname)s [ %(filename)s-%(module)s-%(lineno)d ]  : %(message)s",
+                        datefmt="%H:%M:%S",
+                        level=logging.INFO)
+
     assert args.save is not None, 'Please provide a path to store models'
 
     # First, fine-tune    
@@ -45,8 +58,8 @@ def patch(args):
 
     alphas = args.alpha
     for alpha in alphas:
-        print('='*100)
-        print(f'Evaluating with alpha={alpha:.2f}')
+        logging.info('='*100)
+        logging.info(f'Evaluating with alpha={alpha:.2f}')
         args.alpha = alpha
 
         # interpolate between all weights in the checkpoints

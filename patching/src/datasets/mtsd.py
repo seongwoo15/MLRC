@@ -8,7 +8,7 @@ import tqdm
 from PIL import Image
 
 from .common import ImageFolderWithPaths, SubsetSampler
-
+import logging
 class MTSD:
     def __init__(self,
                  preprocess,
@@ -33,7 +33,7 @@ class MTSD:
         self.train_dataset = ImageFolderWithPaths(
             traindir, transform=self.preprocess)
         kwargs = {'shuffle' : True} if sampler is None else {}
-        print('kwargs is', kwargs)
+        logging.info(f'kwargs is {kwargs}')
         self.train_loader = torch.utils.data.DataLoader(
             self.train_dataset,
             sampler=None,
@@ -75,8 +75,8 @@ def preprocess_mtsd():
     splits = ['train', 'val']
 
     for split in splits:
-        print('='*100)
-        print(split)
+        logging.info('='*100)
+        logging.info(split)
 
         with open(os.path.join(data_dir, f'annotations/splits/{split}.txt'), 'r') as f:
             info = [s.strip() for s in f.readlines()]

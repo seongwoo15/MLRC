@@ -3,13 +3,13 @@ import torch
 import clip.clip as clip
 
 from src import utils
-
+import logging
 
 class ImageEncoder(torch.nn.Module):
     def __init__(self, args, keep_lang=False):
         super().__init__()
 
-        print(f'Loading {args.model} pre-trained weights.')
+        logging.info(f'Loading {args.model} pre-trained weights.')
         self.model, self.train_preprocess, self.val_preprocess = clip.load(
             args.model, args.device, jit=False)
         
@@ -26,12 +26,12 @@ class ImageEncoder(torch.nn.Module):
         return self.forward(inputs)
 
     def save(self, filename):
-        print(f'Saving image encoder to {filename}')
+        logging.info(f'Saving image encoder to {filename}')
         utils.torch_save(self, filename)
 
     @classmethod
     def load(cls, filename):
-        print(f'Loading image encoder from {filename}')
+        logging.info(f'Loading image encoder from {filename}')
         return utils.torch_load(filename)
 
 
@@ -56,12 +56,12 @@ class ClassificationHead(torch.nn.Linear):
         return self.forward(inputs)
 
     def save(self, filename):
-        print(f'Saving classification head to {filename}')
+        logging.info(f'Saving classification head to {filename}')
         utils.torch_save(self, filename)
 
     @classmethod
     def load(cls, filename):
-        print(f'Loading classification head from {filename}')
+        logging.info(f'Loading classification head from {filename}')
         return utils.torch_load(filename)
 
 
@@ -87,10 +87,10 @@ class ImageClassifier(torch.nn.Module):
         return self.forward(inputs)
 
     def save(self, filename):
-        print(f'Saving image classifier to {filename}')
+        logging.info(f'Saving image classifier to {filename}')
         utils.torch_save(self, filename)
 
     @classmethod
     def load(cls, filename):
-        print(f'Loading image classifier from {filename}')
+        logging.info(f'Loading image classifier from {filename}')
         return utils.torch_load(filename)

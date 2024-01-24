@@ -2,7 +2,7 @@ import glob
 import os
 from distutils.dir_util import mkpath
 from distutils.file_util import copy_file
-
+import logging
 import pandas as pd
 # Define the root directory for the splits
 root_dir = "sun397"
@@ -26,4 +26,4 @@ for split in splits:
             if os.path.exists(source_path):
                 copy_file(source_path, os.path.dirname(target_path))
             else:
-                print(f'not exist : {source_path}')
+                logging.info(f'not exist : {source_path}')

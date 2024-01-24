@@ -10,7 +10,7 @@ from torchvision.datasets.folder import make_dataset
 from torchvision.datasets.utils import (download_and_extract_archive,
                                         verify_str_arg)
 from torchvision.datasets.vision import VisionDataset
-
+import logging
 def find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]:
     """Finds the class folders in a dataset.
 
@@ -204,4 +204,4 @@ class GTSRB:
             'white circle with gray strike bar indicating no passing for trucks has ended',
         ]
 
-        print('classnames are', self.classnames)
+        logging.info(f'classnames are {self.classnames}')

@@ -10,7 +10,7 @@ from src.heads import get_classification_head
 from src.modeling import ImageClassifier
 
 from src.datasets.registry import get_dataset
-
+import logging
 
 def eval_single_dataset(image_encoder, dataset_name, args):
     classification_head = get_classification_head(args, dataset_name)
@@ -56,15 +56,15 @@ def evaluate(image_encoder, args):
         return
     info = vars(args)
     for i, dataset_name in enumerate(args.eval_datasets):
-        print('Evaluating on', dataset_name)
+        logging.info(f'Evaluating on {dataset_name}')
 
         results = eval_single_dataset(image_encoder, dataset_name, args)
 
         if 'top1' in results:
-            print(f"{dataset_name} Top-1 accuracy: {results['top1']:.4f}")
+            logging.info(f"{dataset_name} Top-1 accuracy: {results['top1']:.4f}")
         for key, val in results.items():
             if 'worst' in key or 'f1' in key.lower() or 'pm0' in key:
-                print(f"{dataset_name} {key}: {val:.4f}")
+                logging.info(f"{dataset_name} {key}: {val:.4f}")
             info[dataset_name + ':' + key] = val
 
     if args.results_db is not None:
@@ -73,8 +73,8 @@ def evaluate(image_encoder, args):
             os.makedirs(dirname, exist_ok=True)
         with open(args.results_db, 'a+') as f:
             f.write(json.dumps(info) + '\n')
-        print(f'Results saved to {args.results_db}.')
+        logging.info(f'Results saved to {args.results_db}.')
     else:
-        print('Results not saved (to do so, use --results_db to specify a path).')
+        logging.info('Results not saved (to do so, use --results_db to specify a path).')
 
     return info
